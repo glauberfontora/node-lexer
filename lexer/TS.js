@@ -119,6 +119,4 @@ TS.push(KW)
 KW = Token('KW', "nao", 0, 0)
 TS.push(KW)
 
-console.log(TS)
-
-// export default TS
+export default TS
