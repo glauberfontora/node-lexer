@@ -47,7 +47,7 @@ const isLetter = char => char.match(/[a-zA-Z]/) && char.match(/[a-zA-Z]/).length
 
 const nextToken = () => {
   lookhead = pointer !== EOF ? code[pointer] : 'EOF'
-  while(pointer < 50) {
+  while(true) {
     lookhead = pointer !== EOF ? code[pointer] : 'EOF'
     pointer++
     switch (state) {
@@ -97,6 +97,7 @@ const nextToken = () => {
         } else if (isDigit(lookhead)) {
           tokenName.push(lookhead)
         } else {
+          pointer--
           return Token.newToken('NUMERICO', tokenName.join(''), line, column)
         }
         break
@@ -188,12 +189,9 @@ const nextToken = () => {
         if (lookhead === '-') {
           tokenName.push(lookhead)
           return Token.newToken(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
-        } 
-        // else {
-        //   state = 25
-        //   showError("Caractere invalido " + lookhead + " na linha " + line + " e coluna " + column)
-        //   return null
-        // }
+        } else {
+          showError("Caractere invalido " + lookhead + " na linha " + line + " e coluna " + column)
+        }
       break
     }
   }
