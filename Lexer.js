@@ -16,7 +16,7 @@ let state
 let tokenName
 
 const main = () => {
-  const portugoloCode = fs.createReadStream('./segundo_portugolo.ptgl')
+  const portugoloCode = fs.createReadStream('./primeiro_portugolo.ptgl')
 
   portugoloCode.on('data', item => {
     code = item.toString('utf8').split('')
@@ -80,8 +80,8 @@ const nextToken = () => {
           tokenName.push(lookhead)
           state = 18
         } else if (lookhead === '/') {
-          pointer--
-          state = 20
+          tokenName.push(lookhead)
+          state = 27
         } else if (lookhead === '<') {
           tokenName.push(lookhead)
           state = 21
@@ -127,7 +127,7 @@ const nextToken = () => {
           showError("Padrao para [ConstString] invalido na linha " + line + " coluna " + column)
           return null;
         }
-        else if (lookahead === 'EOF') {
+        else if (lookhead === 'EOF') {
           showError("String deve ser fechada com \" antes do fim de arquivo")
           return null;
         }
@@ -144,7 +144,7 @@ const nextToken = () => {
           showError("Padrao para [ConstString] invalido na linha " + line + " coluna " + column)
           return null;
         }
-        else if (lookahead === 'EOF') {
+        else if (lookhead === 'EOF') {
           showError("String deve ser fechada com \" antes do fim de arquivo")
           return null;
         }
@@ -191,6 +191,34 @@ const nextToken = () => {
           return Token.newToken(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
         } else {
           showError("Caractere invalido " + lookhead + " na linha " + line + " e coluna " + column)
+        }
+      break
+      case 27:
+        if (lookhead === '/') {
+          state = 29
+        } else if (lookhead === '*') {
+          state = 30
+        } else {
+          return Token.newToken(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
+        }
+      break
+      case 29:
+        if (lookhead === '\n' || lookhead === 'EOF') {
+          state = 'S'
+        }
+      break
+      case 30:
+        if (lookhead === 'EOF') {
+          showError("Comentário não fechado antes do fim do arquivo" + line + " e coluna " + column)
+        } else if (lookhead === '*') {
+          state = 32
+        }
+      break
+      case 31: 
+        if (lookhead === '/') {
+          state = 'S'
+        } else {
+          state = 30
         }
       break
     }
