@@ -50,6 +50,14 @@ const nextToken = () => {
   while(true) {
     lookhead = pointer !== EOF ? code[pointer] : 'EOF'
     pointer++
+    column++
+    if (lookhead === '\n') {
+      line++
+      column = 0
+    }
+    if (lookhead === '\n') {
+      column += 3
+    }
     switch (state) {
       case 'S':
         if (lookhead === 'EOF') {
@@ -86,7 +94,7 @@ const nextToken = () => {
           tokenName.push(lookhead)
           state = 21
         } else {
-          showError("Caractere invalido " + lookhead + " na linha " + line + " e coluna " + column)
+          showError(`Caractere invalido ${lookhead} na linha ${line} e coluna ${column}`)
           return null;
        }
         break
@@ -106,7 +114,7 @@ const nextToken = () => {
           tokenName.push(lookhead)
           state = 3
         } else {
-          showError("Caractere invalido " + lookhead + " na linha " + line + " e coluna " + column)
+          showError(`Caractere invalido ${lookhead} na linha ${line} e coluna ${column}`)
         }
       break
       case 3:
@@ -120,15 +128,15 @@ const nextToken = () => {
       break
       case 5:
         if (lookhead === '"') {
-          showError("String deve conter pelo menos um caractere. Erro na linha " + line + " coluna " + column)
+          showError(`String deve conter pelo menos um caractere. Erro na linha ${line} coluna ${column}`)
           return null;
         }
         else if (lookhead === '\n') {
-          showError("Padrao para [ConstString] invalido na linha " + line + " coluna " + column)
+          showError(`Padrao para [ConstString] invalido na linha ${line} coluna ${column}`)
           return null;
         }
         else if (lookhead === 'EOF') {
-          showError("String deve ser fechada com \" antes do fim de arquivo")
+          showError(`String deve ser fechada com " antes do fim de arquivo`)
           return null;
         }
         else {
@@ -138,14 +146,14 @@ const nextToken = () => {
       break
       case 6:
         if (lookhead === '"') {
-          return Token.newToken('LITERAL', tokenName.join(''), line, column)
+          return Token.newToken('LITERAL', tokenName.join(''), line, column - tokenName.length)
         }
         else if (lookhead === '\n') {
-          showError("Padrao para [ConstString] invalido na linha " + line + " coluna " + column)
+          showError(`Padrao para [ConstString] invalido na linha ${line} coluna ${column}`)
           return null;
         }
         else if (lookhead === 'EOF') {
-          showError("String deve ser fechada com \" antes do fim de arquivo")
+          showError(`String deve ser fechada com " antes do fim de arquivo`)
           return null;
         }
         else {
@@ -158,7 +166,7 @@ const nextToken = () => {
         }
         else {
           pointer--
-          return Token.newToken('ID', tokenName.join(''), line, column)
+          return Token.newToken('ID', tokenName.join(''), line, column - tokenName.length)
         }
       break
       case 18:
@@ -190,7 +198,7 @@ const nextToken = () => {
           tokenName.push(lookhead)
           return Token.newToken(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
         } else {
-          showError("Caractere invalido " + lookhead + " na linha " + line + " e coluna " + column)
+          showError(`Caractere invalido ${lookhead} na linha ${line} e coluna ${column}`)
         }
       break
       case 27:
@@ -209,7 +217,7 @@ const nextToken = () => {
       break
       case 30:
         if (lookhead === 'EOF') {
-          showError("Comentário não fechado antes do fim do arquivo" + line + " e coluna " + column)
+          showError(`Comentário não fechado antes do fim do arquivo${line} e coluna ${column}`)
         } else if (lookhead === '*') {
           state = 32
         }
