@@ -33,8 +33,10 @@ const main = () => {
       tokenName = []
       error = false
       token = nextToken()
-      const {name, lexeme, line, column} = token
-      if (token !== null) console.info(`\x1b[32m Token: <\x1b[33m${name}\x1b[32m, '\x1b[33m${lexeme}\x1b[32m'> Linha: \x1b[33m${line}\x1b[32m Coluna: \x1b[33m${column}\x1b[0m`)
+      if (token !== null) {
+        const {name, lexeme, line, column} = token
+        console.info(`\x1b[32m Token: <\x1b[33m${name}\x1b[32m, '\x1b[33m${lexeme}\x1b[32m'> Linha: \x1b[33m${line}\x1b[32m Coluna: \x1b[33m${column}\x1b[0m`)
+      }
     } while(token !== null && pointer <= EOF)
 
   })
@@ -58,9 +60,11 @@ const nextToken = () => {
   while(true) {
     lookhead = pointer !== EOF ? code[pointer] : 'EOF'
     pointer++
+    console.log(lookhead.charCodeAt(0), lookhead)
     if (lookhead === '\n') {
       line++
       column = 1
+      console.log('Aqui', line, column)
     } else if (lookhead === '\t') {
       column += 3
     } else {
@@ -178,7 +182,6 @@ const nextToken = () => {
           tokenName.push(lookhead)
         }
         else {
-          console.log(lookhead === '\n')
           const completeTokenName = tokenName.join('')
           pointer--
           if (!table.containsToken(completeTokenName)) {
@@ -187,8 +190,8 @@ const nextToken = () => {
             column--
             return token
           } else {
+            console.log('O problema de retorno está aqui', line, column)
             table.updateToken(completeTokenName, line, column - tokenName.length)
-            column--
             return table.getToken(completeTokenName)
           }
         }
@@ -247,7 +250,7 @@ const nextToken = () => {
           if (!error) showError(`Comentário não fechado antes do fim do arquivo${line} e coluna ${column}`)
           error = true
         } else if (lookhead === '*') {
-          state = 32
+          state = 31
         }
       break
       case 31: 
