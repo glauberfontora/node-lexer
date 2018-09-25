@@ -14,8 +14,12 @@ let column = 1
 
 let state
 let tokenName
+let error = false
+
+const table = new TS()
 
 const main = () => {
+
   const portugoloCode = fs.createReadStream('./primeiro_portugolo.ptgl')
 
   portugoloCode.on('data', item => {
@@ -27,14 +31,18 @@ const main = () => {
     do {
       state = 'S'
       tokenName = []
+      error = false
       token = nextToken()
-      console.log(token)
+      const {name, lexeme, line, column} = token
+      if (token !== null) console.info(`\x1b[32m Token: <\x1b[33m${name}\x1b[32m, '\x1b[33m${lexeme}\x1b[32m'> Linha: \x1b[33m${line}\x1b[32m Coluna: \x1b[33m${column}\x1b[0m`)
     } while(token !== null && pointer <= EOF)
 
   })
 
   portugoloCode.on('end', () => {
-    console.log('Leitura completa')
+    // Imprimir tabela de símbolos
+    console.log("Tabela de simbolos:")
+    table.getTS()
   })
 
 }
@@ -50,18 +58,18 @@ const nextToken = () => {
   while(true) {
     lookhead = pointer !== EOF ? code[pointer] : 'EOF'
     pointer++
-    column++
     if (lookhead === '\n') {
       line++
-      column = 0
-    }
-    if (lookhead === '\n') {
+      column = 1
+    } else if (lookhead === '\t') {
       column += 3
+    } else {
+      column++
     }
     switch (state) {
       case 'S':
         if (lookhead === 'EOF') {
-          return Token.newToken(Tag.getTagType(lookhead, false), lookhead, line, column)
+          return new Token(Tag.getTagType(lookhead, false), lookhead, line, column)
         } else if (lookhead === ' ' || lookhead === '\t' || lookhead === '\n' || lookhead === '\r') {
           state = 'S'
         } else if (
@@ -74,9 +82,10 @@ const nextToken = () => {
           || lookhead === '-'
           || lookhead === '+'
         ) {
-          return Token.newToken(Tag.getTagType(lookhead, false), lookhead, line, column)
+          return new Token(Tag.getTagType(lookhead, false), lookhead, line, column - 1)
         } else if (isDigit(lookhead)) {
           pointer--
+          column--
           state = 1
         } else if (isLetter(lookhead)) {
           tokenName.push(lookhead)
@@ -94,7 +103,7 @@ const nextToken = () => {
           tokenName.push(lookhead)
           state = 21
         } else {
-          showError(`Caractere invalido ${lookhead} na linha ${line} e coluna ${column}`)
+          showError(`Caractere inválido ${lookhead} na linha ${line} e coluna ${column}`)
           return null;
        }
         break
@@ -106,7 +115,8 @@ const nextToken = () => {
           tokenName.push(lookhead)
         } else {
           pointer--
-          return Token.newToken('NUMERICO', tokenName.join(''), line, column)
+          column--
+          return new Token('NUMERICO', tokenName.join(''), line, column)
         }
         break
       case 2:
@@ -114,7 +124,8 @@ const nextToken = () => {
           tokenName.push(lookhead)
           state = 3
         } else {
-          showError(`Caractere invalido ${lookhead} na linha ${line} e coluna ${column}`)
+          if (!error) showError(`Caractere inválido ${lookhead} na linha ${line} e coluna ${column}`)
+          error = true
         }
       break
       case 3:
@@ -123,17 +134,18 @@ const nextToken = () => {
         }
         else {
           pointer--
-          return Token.newToken('NUMERICO', tokenName.join(''), line, column)
+          column--
+          return new Token('NUMERICO', tokenName.join(''), line, column)
         }
       break
       case 5:
         if (lookhead === '"') {
-          showError(`String deve conter pelo menos um caractere. Erro na linha ${line} coluna ${column}`)
-          return null;
+          if (!error) showError(`String deve conter pelo menos um caractere. Erro na linha ${line} coluna ${column}`)
+          error = true
         }
         else if (lookhead === '\n') {
-          showError(`Padrao para [ConstString] invalido na linha ${line} coluna ${column}`)
-          return null;
+          if (!error) showError(`Um literal deve ser fechado antes da quebra de linha. Erro na linha ${line} coluna ${column}`)
+          error = true
         }
         else if (lookhead === 'EOF') {
           showError(`String deve ser fechada com " antes do fim de arquivo`)
@@ -143,17 +155,18 @@ const nextToken = () => {
           tokenName.push(lookhead)
           state = 6
         }
-      break
-      case 6:
+        break
+        case 6:
         if (lookhead === '"') {
-          return Token.newToken('LITERAL', tokenName.join(''), line, column - tokenName.length)
+          tokenName.push(lookhead)
+          return new Token('LITERAL', tokenName.join(''), line, column - tokenName.length)
         }
         else if (lookhead === '\n') {
-          showError(`Padrao para [ConstString] invalido na linha ${line} coluna ${column}`)
-          return null;
+          if (!error) showError(`Padrao para [ConstString] inválido na linha ${line} coluna ${column}`)
+          error = true
         }
         else if (lookhead === 'EOF') {
-          showError(`String deve ser fechada com " antes do fim de arquivo`)
+          if (!error) showError(`String deve ser fechada com " antes do fim de arquivo`)
           return null;
         }
         else {
@@ -165,40 +178,54 @@ const nextToken = () => {
           tokenName.push(lookhead)
         }
         else {
+          console.log(lookhead === '\n')
+          const completeTokenName = tokenName.join('')
           pointer--
-          return Token.newToken('ID', tokenName.join(''), line, column - tokenName.length)
+          if (!table.containsToken(completeTokenName)) {
+            const token = new Token('ID', completeTokenName, line, column - tokenName.length)
+            table.addToken(token)
+            column--
+            return token
+          } else {
+            table.updateToken(completeTokenName, line, column - tokenName.length)
+            column--
+            return table.getToken(completeTokenName)
+          }
         }
       break
       case 18:
         if (lookhead === '=') {
           tokenName.push(lookhead)
-          return Token.newToken(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
+          return new Token(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
         }
         else {
           pointer--
-          return Token.newToken(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
+          column--
+          return new Token(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
         }
       case 21:
         if (lookhead === '=') {
           tokenName.push(lookhead)
-          return Token.newToken(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
+          return new Token(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
         } else if (lookhead === '>') {
           tokenName.push(lookhead)
-          return Token.newToken(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
+          return new Token(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
         } else if (lookhead === '-') {
           tokenName.push(lookhead)
           state = 25
         } else {
           pointer--
-          return Token.newToken(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
+          column--
+          return new Token(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
         }
       break
       case 25:
         if (lookhead === '-') {
           tokenName.push(lookhead)
-          return Token.newToken(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
+          return new Token(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
         } else {
-          showError(`Caractere invalido ${lookhead} na linha ${line} e coluna ${column}`)
+          if (!error) showError(`Caractere inválido ${lookhead} na linha ${line} e coluna ${column}`)
+          error = true
         }
       break
       case 27:
@@ -207,7 +234,7 @@ const nextToken = () => {
         } else if (lookhead === '*') {
           state = 30
         } else {
-          return Token.newToken(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
+          return new Token(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
         }
       break
       case 29:
@@ -217,7 +244,8 @@ const nextToken = () => {
       break
       case 30:
         if (lookhead === 'EOF') {
-          showError(`Comentário não fechado antes do fim do arquivo${line} e coluna ${column}`)
+          if (!error) showError(`Comentário não fechado antes do fim do arquivo${line} e coluna ${column}`)
+          error = true
         } else if (lookhead === '*') {
           state = 32
         }
@@ -234,9 +262,5 @@ const nextToken = () => {
 }
 
 const showError = mensagem => {
-  console.log(`[Erro Lexico]: ${mensagem}`)
+  console.error('\x1b[31m', `[Erro Lexico]: ${mensagem}`, '\x1b[0m')
 }
-
-// Imprimir tabela de símbolos
-// console.log("Tabela de simbolos:")
-// TS.getTS()
