@@ -191,8 +191,7 @@ const nextToken = () => {
             return token
           } else {
             console.log('O problema de retorno está aqui', line, column)
-            table.updateToken(completeTokenName, line, column - tokenName.length)
-            return table.getToken(completeTokenName)
+            return table.updateToken(completeTokenName, line, column - tokenName.length)
           }
         }
       break
