@@ -6,14 +6,29 @@ const synch = () =>{
     console.log("chamou a função synch")
 }
 
+const EMPILHA = () =>{
+    let tam = Object.keys(TP).length
+    let x = 0
+    let y = Object.keys(TP.Compilador).length
+    let z = 0
+    let n1 = Object.keys(TP)
+    for(x;x < tam;x++){
+        if(Array.isArray(TP.Compilador.algoritmo)){
+            const PILHA = []
+            console.log(n1)
+        }
+        z++
+    }
+}
+
 const TP = {
     Compilador:{
         "algoritmo":["Programa" , "EOF"],
 "fim":skip,
 "declare":skip,
 ";"	:skip,
-"subrotina"	:skip,
-ID	:skip,
+"subrotina":skip,
+ID:skip,
 "("	:skip,
 ")":skip,
 ","	:skip,
@@ -21,36 +36,36 @@ ID	:skip,
 "logico":skip,
 "numerico":skip,
 "literal":skip,
-"nulo"	:skip,
+"nulo":skip,
 "se":skip,
 "inicio":skip,
-"senao"	:skip,
-"enquanto"	:skip,
-"faca"	:skip,
-"para"	:skip,
-"ate"	:skip,
+"senao":skip,
+"enquanto":skip,
+"faca":skip,
+"para":skip,
+"ate":skip,
 "repita":skip,
 "<--":skip,
 "escreva":skip,
 "leia":skip,
 Numerico:skip,
-Literal	:skip,
+Literal:skip,
 "verdadeiro":skip,
-"falso"	:skip,
+"falso":skip,
 "Ou":skip,
-"E"	:skip,
-"<"	:skip,
+"E":skip,
+"<":skip,
 "<=":skip,
-">"	:skip,
+">":skip,
 ">=":skip,
-"="	:skip,
+"=":skip,
 "<>":skip,
-"-"	:skip,
-"+"	:skip,
-"/"	:skip,
-"*"	:skip,
+"-":skip,
+"+":skip,
+"/":skip,
+"*":skip,
 "Nao":skip,
-$:synch,
+$:EMPILHA,
     },
 
 Programa:{},
@@ -97,4 +112,4 @@ Op3:{},
 OpUnario:{},
 }
 
-console.log(TP.Compilador.ID)
+console.log(TP.Compilador.$.call())
