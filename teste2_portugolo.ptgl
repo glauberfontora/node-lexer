@@ -1,0 +1,23 @@
+algoritmo 
+   declare
+   x, y numerico;
+   z logico;
+   
+   escreva("informe um numero: ");
+   leia(x);
+
+   escreva("informe outro numero: ");
+   leia(y);
+
+   // primeira atribuicao
+   z <-- (x + y) <> (x * y / 2.11);
+   escreva(z);
+
+   z <-- (verdadeiro Ou falso) = (falso E Nao falso); // segunda atribuicao
+   escreva(z);
+
+   // terceira atribuicao
+   se(x - y <= x E x - y >= y) inicio
+      escreva("Eh isso ai.");
+   fim
+fim algoritmo 

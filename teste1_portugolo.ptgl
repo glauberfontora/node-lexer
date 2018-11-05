@@ -1,0 +1,11 @@
+algoritmo 
+
+   escreva("Ola Mundo!");
+
+   fazNada();
+
+fim algoritmo 
+
+subrotina fazNada(v1 nulo)
+   escreva("Se a rotina faz nada, por que tem um comando de impressao?");
+fim subrotina

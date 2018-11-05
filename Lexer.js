@@ -22,8 +22,8 @@ let error = false
 // Instancia uma nova tabela de simbolos
 const table = new TS()
 
-// Construção da função main que será invocada no inicio do arquivo
-const main = () => {
+// Construção da função lexer que será invocada no inicio do arquivo
+const lexer = () => {
 
   //Instancia o código a partir de um arquivo
   const portugoloCode = fs.createReadStream('./primeiro_portugolo.ptgl')
@@ -70,8 +70,8 @@ const main = () => {
   })
 }
 
-//Invoca a função main para começar a leitura
-main()
+//Invoca a função lexer para começar a leitura
+lexer()
 
 // Função para verificar se é um dígito
 const isDigit = char => Number.isInteger(parseInt(char))
@@ -79,7 +79,7 @@ const isDigit = char => Number.isInteger(parseInt(char))
 // Função para verificar ser é uma letra
 const isLetter = char => char.match(/[a-zA-Z]/) && char.match(/[a-zA-Z]/).length > 0
 
-//Função para ler o próximo token chamado pela função main.
+//Função para ler o próximo token chamado pela função lexer.
 const nextToken = () => {
   //Pega o caractere que está disponível para ser lido
   lookhead = pointer !== EOF ? code[pointer] : 'EOF'
@@ -129,7 +129,6 @@ const nextToken = () => {
           state = 18
         } else if (lookhead === '/') {
           // Encontrou um token iniciado com /
-          tokenName.push(lookhead)
           state = 27
         } else if (lookhead === '<') {
           // Encontrou um token iniciado com <
@@ -301,6 +300,7 @@ const nextToken = () => {
           state = 30
         } else {
           // Retorna divisor
+          tokenName.push(lookhead)
           return new Token(Tag.getTagType(tokenName.join(''), false), tokenName.join(''), line, column)
         }
       break
